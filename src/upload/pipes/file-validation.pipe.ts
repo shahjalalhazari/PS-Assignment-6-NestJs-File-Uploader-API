@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, PipeTransform } from "@nestjs/common";
+import { unlink } from "fs/promises";
 import "multer";
 
 @Injectable()
@@ -13,7 +14,7 @@ export class FileValidationPipe implements PipeTransform {
     // ALLOWED EXTENSIONS
     private readonly allowedExtensions = [
         '.jpg',
-        '.jped',
+        '.jpeg',
         '.png',
         '.webp',
     ];
@@ -21,7 +22,7 @@ export class FileValidationPipe implements PipeTransform {
     // MAX FILE SIZE (5MB)
     private readonly maxFileSize = 5 * 1024 * 1024;
 
-    transform(file: Express.Multer.File) {
+    async transform(file: Express.Multer.File) {
         // CHECK IF FILE IS PRESENT
         if (!file) {
             throw new BadRequestException('No file uploaded');
@@ -47,5 +48,14 @@ export class FileValidationPipe implements PipeTransform {
 
         // RETURN VALID FILE
         return file;
+    };
+
+    // 
+    private async deleteFile(file: Express.Multer.File): Promise<void> {
+        try {
+            await unlink(file.path);
+        } catch (error) {
+            console.error(`Failed to delete rejected file: ${file.path}`, error);
+        }
     }
 }

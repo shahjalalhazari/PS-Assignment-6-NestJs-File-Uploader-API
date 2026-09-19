@@ -5,7 +5,10 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class UploadService {
     constructor(private readonly prisma: PrismaService) {}
 
-    async uploadSingle(file: Express.Multer.File) {
+    async uploadSingle(
+        file: Express.Multer.File,
+        uploadedBy: string,
+    ) {
         const upload = await this.prisma.upload.create({
             data: {
                 originalName: file.originalname,
@@ -15,7 +18,7 @@ export class UploadService {
                 url: `/uploads/${file.filename}`,
                 storageType: 'local',
                 status: 'pending',
-                uploadedBy: undefined,
+                uploadedBy,
             },
         });
 

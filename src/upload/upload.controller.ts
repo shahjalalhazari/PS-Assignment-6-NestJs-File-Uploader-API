@@ -1,9 +1,11 @@
-import { Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Controller, Post, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import 'multer';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { randomUUID } from 'crypto';
+import type { Request } from 'express';
+
 import { UploadService } from './upload.service';
 import { FileValidationPipe } from './pipes/file-validation.pipe';
 
@@ -34,7 +36,12 @@ export class UploadController {
   uploadSingle(
     @UploadedFile(FileValidationPipe)
     file: Express.Multer.File,
+    @Req()
+    req: Request,
   ) {
-    return this.uploadService.uploadSingle(file);
+    if (!req.ip) {
+      throw new BadRequestException('Unable to determine client IP address');
+    }
+    return this.uploadService.uploadSingle(file, req.ip);
   }
 }

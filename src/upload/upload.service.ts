@@ -4,7 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class UploadService {
-    private readonly DAILY_UPLOAD_LIMIT = 10 * 1024 * 1024;
+    private readonly DAILY_UPLOAD_LIMIT = 1 * 1024 * 1024 * 1024; // 1GB
 
     constructor(private readonly prisma: PrismaService) {}
 
@@ -29,7 +29,6 @@ export class UploadService {
                 },
             },
         });
-        console.log("Already Usage:", result._sum.size ?? 0);
         return result._sum.size ?? 0;
     }
 
@@ -37,10 +36,6 @@ export class UploadService {
     private async checkDailyUploadLimit(uploadedBy: string, fileSize: number): Promise<void> {
         const currentUsage = await this.getDailyUploadUsage(uploadedBy);
         const newUsage = currentUsage + fileSize;
-        console.log("Current File Size:", fileSize);
-        console.log("New Usage:", newUsage);
-
-        console.log("New Current Usage:", currentUsage);
         if (newUsage > this.DAILY_UPLOAD_LIMIT) {
             throw new BadRequestException(`Daily upload limit of 1GB exceeded. Current usage: ${currentUsage} bytes.`);
         }

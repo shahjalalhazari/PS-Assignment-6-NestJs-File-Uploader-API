@@ -1,4 +1,4 @@
-import { BadRequestException, Controller, Post, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Controller, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import 'multer';
 import { diskStorage } from 'multer';
@@ -8,6 +8,7 @@ import type { Request } from 'express';
 
 import { UploadService } from './upload.service';
 import { FileValidationPipe } from './pipes/file-validation.pipe';
+import { RateLimitGuard } from './guards/rate-limit.guard';
 
 @Controller('upload')
 export class UploadController {
@@ -15,6 +16,7 @@ export class UploadController {
 
   // UPLOAD SINGLE FILE
   @Post('single')
+  @UseGuards(RateLimitGuard)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({

@@ -1,12 +1,16 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { unlink } from 'fs/promises';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UploadQueueService } from 'src/spaces/queue/upload-queue.service';
 
 @Injectable()
 export class UploadService {
     private readonly DAILY_UPLOAD_LIMIT = 1 * 1024 * 1024 * 1024; // 1GB
 
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly uploadQueueSevice: UploadQueueService,
+    ) {}
 
     // GET ALREADY UPLOADED SIZE OF A DAY
     private async getDailyUploadUsage(uploadedBy: string): Promise<number> {
@@ -70,6 +74,13 @@ export class UploadService {
                     uploadedBy,
                 },
             });
+
+            await this.uploadQueueSevice.addUploadJob({
+                filePath: file.path,
+                fileName: file.filename,
+                mimeType: file.mimetype,
+                uploadId: upload.id,
+            })
 
             return {
                 message: "File uploaded successfully!",

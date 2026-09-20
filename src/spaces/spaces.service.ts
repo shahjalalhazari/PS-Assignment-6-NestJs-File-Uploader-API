@@ -11,13 +11,13 @@ export class SpacesService {
     constructor(
         private readonly configService: ConfigService,
     ) {
-        const endpoint = this.configService.get<string>('spaces.endpint');
+        const endpoint = this.configService.get<string>('spaces.endpoint');
         const region = this.configService.get<string>('spaces.region');
         const accessKey = this.configService.get<string>('spaces.accessKey');
         const secretKey = this.configService.get<string>('spaces.secretKey');
         const bucket = this.configService.get<string>('spaces.bucket');
 
-        if (!endpoint || !region || !accessKey || !secretKey || !bucket) throw new Error('DigitalOcean spaves config is incomplete.');
+        if (!endpoint || !region || !accessKey || !secretKey || !bucket) throw new Error('DigitalOcean spaces config is incomplete.');
 
         this.bucket = bucket;
         this.s3Client = new S3Client({
@@ -41,8 +41,8 @@ export class SpacesService {
         });
 
         await this.s3Client.send(command);
-        const endpint = this.configService.get<string>('spaces.endoint');
-        if (!endpint) throw new Error('DigitalOcean spaces endpint is not configured');
+        const endpint = this.configService.get<string>('spaces.endpoint');
+        if (!endpint) throw new Error('DigitalOcean spaces endpoint is not configured');
 
         console.log(`${endpint}/${this.bucket}/${fileName}`);
         return `${endpint}/${this.bucket}/${fileName}`;

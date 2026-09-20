@@ -1,5 +1,5 @@
-import { BadRequestException, Controller, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { BadRequestException, Controller, Post, Req, UploadedFile, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import 'multer';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -45,5 +45,38 @@ export class UploadController {
       throw new BadRequestException('Unable to determine client IP address');
     }
     return this.uploadService.uploadSingle(file, req.ip);
+  }
+
+  // UPLOAD MULTIPLE FILES
+  @Post('multiple')
+  @UseGuards(RateLimitGuard)
+  @UseInterceptors(
+    FilesInterceptor('files', 5, {
+      storage: diskStorage({
+        destination: './public/uploads',
+
+        filename: (req, file, callback) => {
+          const extension = extname(file.originalname).toLowerCase();
+          const fileName = `${Date.now()}-${randomUUID()}${extension}`;
+
+          callback(null, fileName);
+        },
+      }),
+
+      limits: {
+        fileSize: 5 * 1024 * 1024,
+        files: 5,
+      },
+    }),
+  )
+  uploadMultiple(
+    @UploadedFiles()
+    files: Express.Multer.File[],
+    @Req()
+    req: Request,
+  ) {
+    if (!req.ip) throw new BadRequestException('Unable to determine client IP address.');
+
+    return this.uploadService.uploadMultiple(files, req.ip);
   }
 }

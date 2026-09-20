@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { unlink } from 'fs/promises';
+import { Upload } from 'generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UploadQueueService } from 'src/spaces/queue/upload-queue.service';
 
@@ -88,6 +89,59 @@ export class UploadService {
             };
         } catch (error) {
             await this.deleteLocalFile(file.path);
+            throw error;
+        }
+    }
+
+    // UPLOAD MULTIPLE FILES
+    async uploadMultiple(
+        files: Express.Multer.File[], 
+        uploadedBy
+    ) {
+        if (!files || files.length === 0) throw new BadRequestException('At least one file is required');
+
+        try {
+            const totalSize = files.reduce(
+                (total, file) => total + file.size,
+                0,
+            );
+
+            await this.checkDailyUploadLimit(uploadedBy, totalSize);
+
+            const uploads: Upload[] = [];
+            for (const file of files) {
+                const upload = await this.prisma.upload.create({
+                    data: {
+                        originalName: file.originalname,
+                        fileName: file.filename,
+                        mimeType: file.mimetype,
+                        size: file.size,
+                        url: `/uploads/${file.filename}`,
+                        storageType: 'local',
+                        status: 'pending',
+                        uploadedBy,
+                    },
+                });
+
+                uploads.push(upload);
+
+                await this.uploadQueueSevice.addUploadJob({
+                    fileName: file.filename,
+                    filePath: file.path,
+                    mimeType: file.mimetype,
+                    uploadId: upload.id,
+                });
+            }
+
+            return {
+                message: `${files.length} file(s) uploaded successfully`,
+                uploads,
+            }
+        } catch (error) {
+            for (const file of files) {
+                await this.deleteLocalFile(file.path);
+            }
+
             throw error;
         }
     }

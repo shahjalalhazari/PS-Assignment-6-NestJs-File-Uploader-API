@@ -85,6 +85,12 @@ export class UploadController {
     return this.uploadService.findAll(query);
   }
 
+  // GET UPLOAD STATS
+  @Get('stats')
+  getStats() {
+    return this.uploadService.getStats();
+  }
+
   // GET A SIGNLE UPLOAD
   @Get(':id')
   findOne(@Param('id') id: string) {

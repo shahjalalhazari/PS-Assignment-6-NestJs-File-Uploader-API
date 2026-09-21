@@ -59,6 +59,28 @@ export class UploadService {
         }
     }
 
+    // FORMAT FILE SIZE
+    private formatFileSize(size: number): string {
+        if (size === 0) return '0 Bytes';
+
+        const units = [
+            'Bytes',
+            'KB',
+            'MB',
+            'GB',
+            'TB',
+        ];
+
+        const index = Math.floor(
+            Math.log(size) / Math.log(1024),
+        );
+        const value = size / Math.pow(1024, index);
+
+        return `${parseFloat(value.toFixed(2))} ${units[index]}`;
+    }
+
+
+    // ------------------------------------------------------------
     // UPLOAD SINGLE FILE
     async uploadSingle(
         file: Express.Multer.File,
@@ -275,5 +297,67 @@ export class UploadService {
                 originalName: upload.originalName,
             }
         }
+    }
+
+    // GET STATS
+    async getStats() {
+        const [
+            totalFiles,
+            totalSizeResult,
+            byStatus,
+            byMimeType,
+        ] = await Promise.all([
+            // TOTAL FILES
+            this.prisma.upload.count(),
+
+            // TOTAL FILE SIZE
+            this.prisma.upload.aggregate({
+                _sum: {
+                    size: true,
+                },
+            }),
+
+            // FILES GRUOPED BY STATUS
+            this.prisma.upload.groupBy({
+                by: ['status'],
+                _count: {
+                    _all: true,
+                },
+            }),
+
+            // FILES GROUPED BY MIMETYPE
+            this.prisma.upload.groupBy({
+                by: ['mimeType'],
+                _count: {
+                    _all: true,
+                },
+            }),
+        ]);
+
+        const totalSize = totalSizeResult._sum.size ?? 0;
+
+        const statusStats = {
+            done: 0,
+            pending: 0,
+            failed: 0,
+        };
+        for (const item of byStatus) {
+            if (item.status === 'done') statusStats.done = item._count._all;
+            if (item.status === 'pending') statusStats.pending = item._count._all;
+            if (item.status === 'failed') statusStats.failed = item._count._all;
+        };
+
+        const mimeTypeStats:Record<string, number> = {};
+        for (const item of byMimeType) {
+            mimeTypeStats[item.mimeType] = item._count._all;
+        }
+
+        return {
+            totalFiles,
+            totalSize,
+            totalSizeFormatted: this.formatFileSize(totalSize),
+            byStatus: statusStats,
+            byMimeType: mimeTypeStats,
+        };
     }
 }

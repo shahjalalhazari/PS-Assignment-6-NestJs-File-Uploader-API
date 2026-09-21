@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { unlink } from 'fs/promises';
 import { Upload } from 'generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -208,5 +208,17 @@ export class UploadService {
                 totalPages: Math.ceil(total / limit),
             }
         }
+    }
+
+    // GET A SINGLE UPLOAD
+    async findOne(id: string) {
+        const upload = await this.prisma.upload.findUnique({
+            where: {
+                id,
+            }
+        });
+        if (!upload) throw new NotFoundException('Upload not found');
+
+        return {data: upload}
     }
 }

@@ -1,4 +1,4 @@
-import { BadRequestException, Controller, Get, Param, Post, Query, Req, UploadedFile, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Controller, Delete, Get, Param, Post, Query, Req, UploadedFile, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import 'multer';
 import { diskStorage } from 'multer';
@@ -89,5 +89,11 @@ export class UploadController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.uploadService.findOne(id);
+  }
+
+  // DELETE UPLOAD
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.uploadService.remove(id);
   }
 }

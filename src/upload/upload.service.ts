@@ -1,9 +1,11 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { unlink } from 'fs/promises';
+import { access, unlink } from 'fs/promises';
 import { Upload } from 'generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UploadQueueService } from 'src/spaces/queue/upload-queue.service';
 import { QueryUploadsDto } from './dto/query-uploads.dto';
+import { SpacesService } from 'src/spaces/spaces.service';
+import { join } from 'path';
 
 @Injectable()
 export class UploadService {
@@ -12,6 +14,7 @@ export class UploadService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly uploadQueueSevice: UploadQueueService,
+        private readonly spaceServices: SpacesService,
     ) {}
 
     // GET ALREADY UPLOADED SIZE OF A DAY
@@ -220,5 +223,57 @@ export class UploadService {
         if (!upload) throw new NotFoundException('Upload not found');
 
         return {data: upload}
+    }
+
+    // DELETE UPLOAD
+    async remove(id: string) {
+        const upload = await this.prisma.upload.findUnique({
+            where: {
+                id,
+            }
+        });
+
+        if (!upload) throw new NotFoundException('Upload not found');
+
+        // DELETE FILE FROM DO SPACES
+        if(upload.storageType === 'spaces') {
+            try {
+                await this.spaceServices.deleteFile(upload.fileName);
+            } catch (error) {
+                console.error(`Failed to delete file from spaces: ${upload.fileName}`, error,);
+
+                throw new BadRequestException('Failed to delete file from cloud storage.')
+            }
+        }
+
+        // DELETE LOCAL FILE TOO (IF IT EXISTS)
+        const localFilePath = join(
+            process.cwd(),
+            'public',
+            'uploads',
+            upload.fileName,
+        );
+
+        try {
+            await access(localFilePath);
+            await unlink(localFilePath);
+        } catch (error) {
+            // FILE DOES NOT EXIST LOCALLY. IT'S OK BECAUSE AFTER UPLOAD TO SPACES FILE GETS DELETED
+        }
+
+        // DELETE DB RECORD
+        await this.prisma.upload.delete({
+            where: {
+                id,
+            }
+        });
+
+        return {
+            message: "Upload deleted successfully",
+            data: {
+                id: upload.id,
+                originalName: upload.originalName,
+            }
+        }
     }
 }

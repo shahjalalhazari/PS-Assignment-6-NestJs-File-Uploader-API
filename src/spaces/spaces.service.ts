@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
 import { createReadStream } from 'fs';
 
@@ -30,6 +30,7 @@ export class SpacesService {
         });
     }
 
+    // UPLOAD FILE(S) TO SPACES
     async uploadFile(filePath: string, fileName: string, mimeType: string): Promise<string> {
         const fileStream = createReadStream(filePath);
         const command = new PutObjectCommand({
@@ -46,5 +47,15 @@ export class SpacesService {
 
         console.log(`${endpint}/${this.bucket}/${fileName}`);
         return `${endpint}/${this.bucket}/${fileName}`;
+    };
+
+    // DELETE FILE FROM SPACES
+    async deleteFile(fileName): Promise<void> {
+        const command = new DeleteObjectCommand({
+            Bucket: this.bucket,
+            Key: fileName,
+        });
+
+        await this.s3Client.send(command);
     }
 }

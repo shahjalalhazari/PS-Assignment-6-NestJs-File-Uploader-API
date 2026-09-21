@@ -11,25 +11,32 @@ import { FileValidationPipe } from './pipes/file-validation.pipe';
 import { RateLimitGuard } from './guards/rate-limit.guard';
 import { QueryUploadsDto } from './dto/query-uploads.dto';
 
+// REUSABLE MULTER STORAGE CONFIG
+function getStorage() {
+  return diskStorage({
+    destination: './public/uploads',
+
+    filename: (req, file, cb) => {
+      const extension = extname(file.originalname).toLowerCase();
+      const fileName = `${Date.now()}-${randomUUID()}${extension}`;
+
+      cb(null, fileName);
+    }
+  })
+}
+
 @Controller('upload')
 export class UploadController {
-  constructor(private readonly uploadService: UploadService) {}
+  constructor(
+    private readonly uploadService: UploadService
+  ) {}
 
   // UPLOAD SINGLE FILE
   @Post('single')
   @UseGuards(RateLimitGuard)
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './public/uploads',
-
-        filename: (req, file, callback) => {
-          const extension = extname(file.originalname).toLowerCase();
-          const fileName = `${Date.now()}-${randomUUID()}${extension}`;
-
-          callback(null, fileName);
-        },
-      }),
+      storage: getStorage(),
 
       limits: {
         fileSize: 5 * 1024 * 1024,
@@ -53,16 +60,7 @@ export class UploadController {
   @UseGuards(RateLimitGuard)
   @UseInterceptors(
     FilesInterceptor('files', 5, {
-      storage: diskStorage({
-        destination: './public/uploads',
-
-        filename: (req, file, callback) => {
-          const extension = extname(file.originalname).toLowerCase();
-          const fileName = `${Date.now()}-${randomUUID()}${extension}`;
-
-          callback(null, fileName);
-        },
-      }),
+      storage: getStorage(),
 
       limits: {
         fileSize: 5 * 1024 * 1024,

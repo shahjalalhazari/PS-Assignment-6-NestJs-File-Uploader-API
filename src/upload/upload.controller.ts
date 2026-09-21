@@ -1,4 +1,4 @@
-import { BadRequestException, Controller, Post, Req, UploadedFile, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Post, Query, Req, UploadedFile, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import 'multer';
 import { diskStorage } from 'multer';
@@ -9,6 +9,7 @@ import type { Request } from 'express';
 import { UploadService } from './upload.service';
 import { FileValidationPipe } from './pipes/file-validation.pipe';
 import { RateLimitGuard } from './guards/rate-limit.guard';
+import { QueryUploadsDto } from './dto/query-uploads.dto';
 
 @Controller('upload')
 export class UploadController {
@@ -78,5 +79,11 @@ export class UploadController {
     if (!req.ip) throw new BadRequestException('Unable to determine client IP address.');
 
     return this.uploadService.uploadMultiple(files, req.ip);
+  }
+
+  // GET ALL UPLOADS
+  @Get()
+  findAll(@Query() query: QueryUploadsDto) {
+    return this.uploadService.findAll(query);
   }
 }

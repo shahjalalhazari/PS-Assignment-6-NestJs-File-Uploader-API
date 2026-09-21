@@ -3,6 +3,7 @@ import { unlink } from 'fs/promises';
 import { Upload } from 'generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UploadQueueService } from 'src/spaces/queue/upload-queue.service';
+import { QueryUploadsDto } from './dto/query-uploads.dto';
 
 @Injectable()
 export class UploadService {
@@ -151,6 +152,61 @@ export class UploadService {
             }
 
             throw error;
+        }
+    }
+
+    // GET ALL UPLOADS
+    async findAll(query: QueryUploadsDto) {
+        const {
+            page = 1,
+            limit = 10,
+            status,
+            mimeType,
+            search,
+            sortBy = 'createdAt',
+            sortOrder = 'desc',
+        } = query;
+
+        const skip = (page - 1) * limit;
+
+        const where = {
+            ...(status && {
+                status
+            }),
+            ...(mimeType && {
+                mimeType
+            }),
+            ...(search && {
+                originalName: {
+                    contains: search,
+                    mode: 'insensitive' as const
+                }
+            }),
+        };
+
+        const [uploads, total] = await Promise.all([
+            this.prisma.upload.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy: {
+                    [sortBy]: sortOrder,
+                },
+            }),
+
+            this.prisma.upload.count({
+                where,
+            }),
+        ]);
+
+        return {
+            data: uploads,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
+            }
         }
     }
 }

@@ -61,8 +61,10 @@ export class UploadService {
         uploadedBy: string,
     ) {
         try {
+            // CHECK DAILY LIMIT SIZE
             await this.checkDailyUploadLimit(uploadedBy, file.size);
 
+            // SAVE FILE INTO DB.
             const upload = await this.prisma.upload.create({
                 data: {
                     originalName: file.originalname,
@@ -76,6 +78,7 @@ export class UploadService {
                 },
             });
 
+            // SEND FILE TO THE QUEUE
             await this.uploadQueueSevice.addUploadJob({
                 filePath: file.path,
                 fileName: file.filename,
@@ -85,7 +88,7 @@ export class UploadService {
 
             return {
                 message: "File uploaded successfully!",
-                upload,
+                data: upload,
             };
         } catch (error) {
             await this.deleteLocalFile(file.path);
@@ -98,16 +101,20 @@ export class UploadService {
         files: Express.Multer.File[], 
         uploadedBy
     ) {
+        // IF NOT FILE
         if (!files || files.length === 0) throw new BadRequestException('At least one file is required');
 
         try {
+            // TOTAL PAYLOAD SIZE
             const totalSize = files.reduce(
                 (total, file) => total + file.size,
                 0,
             );
 
+            // CHECK DAILY UPLOAD LIMIT
             await this.checkDailyUploadLimit(uploadedBy, totalSize);
 
+            // SAVE EACH FILES IN DB
             const uploads: Upload[] = [];
             for (const file of files) {
                 const upload = await this.prisma.upload.create({
@@ -125,6 +132,7 @@ export class UploadService {
 
                 uploads.push(upload);
 
+                // SEND EACH FILES TO THE QUEUE
                 await this.uploadQueueSevice.addUploadJob({
                     fileName: file.filename,
                     filePath: file.path,
@@ -135,7 +143,7 @@ export class UploadService {
 
             return {
                 message: `${files.length} file(s) uploaded successfully`,
-                uploads,
+                data: uploads,
             }
         } catch (error) {
             for (const file of files) {

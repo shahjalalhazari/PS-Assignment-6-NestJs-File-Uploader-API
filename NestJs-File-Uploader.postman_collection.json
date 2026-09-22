@@ -1,0 +1,168 @@
+{
+  "info": {
+    "_postman_id": "12515eae-f733-4499-86d9-bfd0222aadbe",
+    "name": "NestJs-File-Uploader",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "48003262"
+  },
+  "item": [
+    {
+      "name": "Root Route",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Upload Single File",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": []
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:3000/upload/single",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "upload",
+            "single"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Uploads",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/upload",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "upload"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Single Upload",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/upload/777bc49b-2614-46d9-83f9-cf5fa38360f7",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "upload",
+            "777bc49b-2614-46d9-83f9-cf5fa38360f7"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Upload Stats",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/upload/stats",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "upload",
+            "stats"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Upload",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/upload/777bc49b-2614-46d9-83f9-cf5fa38360f7",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "upload",
+            "777bc49b-2614-46d9-83f9-cf5fa38360f7"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Upload Multiple Files",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "files",
+              "type": "file",
+              "src": [
+                "postman-cloud:///1f1a95c3-5117-4d20-b1a1-5b28a024a4b0",
+                "postman-cloud:///1f1a6e11-3ac7-4e00-b633-ec9df7209182"
+              ]
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:3000/upload/multiple",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "upload",
+            "multiple"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

@@ -44,8 +44,7 @@ export class SpacesService {
         await this.s3Client.send(command);
         const endpint = this.configService.get<string>('spaces.endpoint');
         if (!endpint) throw new Error('DigitalOcean spaces endpoint is not configured');
-
-        console.log(`${endpint}/${this.bucket}/${fileName}`);
+        
         return `${endpint}/${this.bucket}/${fileName}`;
     };
 

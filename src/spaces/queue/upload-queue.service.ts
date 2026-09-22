@@ -33,7 +33,6 @@ export class UploadQueueService {
     };
 
     private async processUpload(job: UploadJob): Promise<void> {
-        console.log(`[QUEUE] Processing upload: ${job.uploadId}`);
         try {
             const url = await this.spacesService.uploadFile(
                 job.filePath,
@@ -53,11 +52,7 @@ export class UploadQueueService {
             });
 
             await this.deleteLocalFile(job.filePath);
-
-            console.log(`[QUEUE] Upload Completed: ${job.uploadId}`);
         } catch (error) {
-            console.log(`[QUEUE] Upload Failed: ${job.uploadId}`);
-
             await this.prisma.upload.update({
                 where: {
                     id: job.uploadId,
@@ -72,7 +67,6 @@ export class UploadQueueService {
     private async deleteLocalFile(filePath: string): Promise<void> {
         try {
             await unlink(filePath);
-            console.log(`[QUEUE] Local file deleted: ${filePath}`);
         } catch (error) {
             console.log(`[QUEUE] Failed to delete local: ${filePath}`, error);
         }

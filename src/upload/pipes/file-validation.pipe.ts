@@ -25,12 +25,12 @@ export class FileValidationPipe implements PipeTransform {
     async transform(file: Express.Multer.File) {
         // CHECK IF FILE IS PRESENT
         if (!file) {
-            throw new BadRequestException('No file uploaded');
+            throw new BadRequestException('File is required');
         }
 
         // CHECK MIME TYPE
         if (!this.allowedMimeTypes.includes(file.mimetype)) {
-            throw new BadRequestException('Only JPG, JPEG, PNG & WEBP files are allowed.');
+            throw new BadRequestException('Invalid Only JPG, JPEG, PNG & WEBP files are allowed.');
         }
 
         // CHECK FILE EXTESION
@@ -43,7 +43,7 @@ export class FileValidationPipe implements PipeTransform {
 
         // CHECK FILE SIZE
         if (file.size > this.maxFileSize) {
-            throw new BadRequestException('File size must not exceed 5 MB');
+            throw new BadRequestException('File too large (max 5MB)');
         }
 
         // RETURN VALID FILE

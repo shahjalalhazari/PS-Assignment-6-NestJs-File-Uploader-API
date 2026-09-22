@@ -10,6 +10,7 @@ import { UploadService } from './upload.service';
 import { FileValidationPipe } from './pipes/file-validation.pipe';
 import { RateLimitGuard } from './guards/rate-limit.guard';
 import { QueryUploadsDto } from './dto/query-uploads.dto';
+import { UploadLoggingInterceptor } from './interceptors/upload-logging.interceptor';
 
 // REUSABLE MULTER STORAGE CONFIG
 function getStorage() {
@@ -35,6 +36,7 @@ export class UploadController {
   @Post('single')
   @UseGuards(RateLimitGuard)
   @UseInterceptors(
+    UploadLoggingInterceptor,
     FileInterceptor('file', {
       storage: getStorage(),
 
@@ -59,6 +61,7 @@ export class UploadController {
   @Post('multiple')
   @UseGuards(RateLimitGuard)
   @UseInterceptors(
+    UploadLoggingInterceptor,
     FilesInterceptor('files', 5, {
       storage: getStorage(),
 
@@ -81,24 +84,28 @@ export class UploadController {
 
   // GET ALL UPLOADS
   @Get()
+  @UseInterceptors(UploadLoggingInterceptor)
   findAll(@Query() query: QueryUploadsDto) {
     return this.uploadService.findAll(query);
   }
 
   // GET UPLOAD STATS
   @Get('stats')
+  @UseInterceptors(UploadLoggingInterceptor)
   getStats() {
     return this.uploadService.getStats();
   }
 
   // GET A SIGNLE UPLOAD
   @Get(':id')
+  @UseInterceptors(UploadLoggingInterceptor)
   findOne(@Param('id') id: string) {
     return this.uploadService.findOne(id);
   }
 
   // DELETE UPLOAD
   @Delete(':id')
+  @UseInterceptors(UploadLoggingInterceptor)
   remove(@Param('id') id: string) {
     return this.uploadService.remove(id);
   }
